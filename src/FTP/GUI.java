@@ -147,10 +147,6 @@ public class GUI extends JFrame {
 		scrollPane.setBounds(10, 274, 730, 143);
 		contentPane.add(scrollPane);
 
-		Server.lstUtenti.add("pippo");
-		Server.lstUtenti.add("pluto");
-		Server.lstUtenti.add("minnie");
-
 		textAreaLog = new JTextArea();
 		scrollPane.setViewportView(textAreaLog);
 
@@ -165,6 +161,7 @@ public class GUI extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				Server.lstUtenti.add(txtNomeUtente.getText());
 				ListUpdate();
+				txtNomeUtente.setText("");
 			}
 		});
 		btnAggiungiUtente.setBounds(12, 138, 52, 26);
@@ -173,6 +170,9 @@ public class GUI extends JFrame {
 		JButton btnRimuoviUtente = new JButton("-");
 		btnRimuoviUtente.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				Server.lstUtenti.remove(listBoxUtenti.getSelectedIndex());
+				listBoxUtenti.remove(listBoxUtenti.getSelectedIndex());
+				ListUpdate();
 			}
 		});
 		btnRimuoviUtente.setBounds(90, 138, 52, 26);
