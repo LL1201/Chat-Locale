@@ -62,9 +62,15 @@ public class FTPThread implements Runnable {
                 cmdstr = str.split("\\s+");
                 if (cmdstr.length > 1) {
                     switch (cmdstr[0].toUpperCase()) {
+                        case "PORT":
+                            Port(cmdstr);
+                            break;
                         case "OPTS":
-                            if (cmdstr[1].toUpperCase().equals("UTF8"))
-                                out.println("200 OPTS UTF8 command successful - UTF8 encoding now ON.");
+                            out.println("502 Command not implemented.");
+                            /*
+                             * if (cmdstr[1].toUpperCase().equals("UTF8"))
+                             * out.println("200 OPTS UTF8 command successful - UTF8 encoding now ON.");
+                             */
                             break;
                         case "AUTH":
                             if (cmdstr[1].toUpperCase().equals("TLS"))
@@ -138,6 +144,7 @@ public class FTPThread implements Runnable {
                             break;
                         case "PASV":
                             Pasv();
+                            // out.println("502 Command not implemented.");
                             break;
                         case "QUIT":
                             QuitCmdConnection();
@@ -206,8 +213,8 @@ public class FTPThread implements Runnable {
                 else
                     list += "-";
 
-                list += "------ 1 owner group " + fileEntry.length() + " "
-                        + new SimpleDateFormat("MMM dd yyyy").format(new Date(fileEntry.lastModified()))
+                list += "------   1 owner    group             " + fileEntry.length() + " "
+                        + new SimpleDateFormat("MMM  dd  yyyy").format(new Date(fileEntry.lastModified()))
                         + " "
                         + fileEntry.getName() + "\r\n";
             }
@@ -241,33 +248,37 @@ public class FTPThread implements Runnable {
             else
                 path = Server.ftpPath + currentPath + "/" + fileName;
 
-            FileInputStream inputStream = null;
-            BufferedInputStream bInputStream = null;
-            OutputStream outputStream = null;
-            // File file = new File("file" + currentPath + cmdstr[1]);
-            File file = new File(path);
-            byte[] bytes = new byte[(int) file.length()];
+            if (new File(path).exists()) {
 
-            try {
-                inputStream = new FileInputStream(file);
-                bInputStream = new BufferedInputStream(inputStream);
-                bInputStream.read(bytes, 0, bytes.length);
-                outputStream = data.getOutputStream();
-                outputStream.write(bytes, 0, bytes.length);
-                outputStream.flush();
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.out.println("Transfer problems!");
-            }
+                FileInputStream inputStream = null;
+                BufferedInputStream bInputStream = null;
+                OutputStream outputStream = null;
+                // File file = new File("file" + currentPath + cmdstr[1]);
+                File file = new File(path);
+                byte[] bytes = new byte[(int) file.length()];
 
-            try {
-                data.close();
-                bInputStream.close();
-                outputStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            out.println("226 Transfer complete. Closing data connection.");
+                try {
+                    inputStream = new FileInputStream(file);
+                    bInputStream = new BufferedInputStream(inputStream);
+                    bInputStream.read(bytes, 0, bytes.length);
+                    outputStream = data.getOutputStream();
+                    outputStream.write(bytes, 0, bytes.length);
+                    outputStream.flush();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.out.println("Transfer problems!");
+                }
+
+                try {
+                    data.close();
+                    bInputStream.close();
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                out.println("226 Transfer complete. Closing data connection.");
+            } else
+                out.println("550 The system cannot find the file specified.");
         } else
             out.println("530 Please login with USER and PASS.");
     }
@@ -276,7 +287,7 @@ public class FTPThread implements Runnable {
         if (anonymousLogged || stdUserLogged) {
             int upper = (int) (Math.random() * (190) + 4);
             int lower = (int) (Math.random() * (511) + 1);
-            out.println("227 Entering Passive Mode (10,0,12,120," + upper + "," + lower + ")");
+            out.println("227 Entering Passive Mode (127,0,0,1," + upper + "," + lower + ")");
 
             try {
                 wsdata = new ServerSocket(((upper * 256) + lower));
@@ -393,7 +404,7 @@ public class FTPThread implements Runnable {
                 if (str.equals("/")) {
                     currentPath = "/";
                     out.println("250 CWD command successful.");
-                } else if (new File("file" + str).exists()) {
+                } else if (new File(Server.ftpPath + str).exists()) {
                     if (str.charAt(str.length() - 1) == '/') {
                         currentPath = str.substring(0, str.length() - 1);
                     } else
@@ -457,6 +468,21 @@ public class FTPThread implements Runnable {
         if (anonymousLogged || stdUserLogged) {
             new File(Server.ftpPath + currentPath + "/" + name).delete();
             out.println("250 File deleted.");
+        } else
+            out.println("530 Please login with USER and PASS.");
+    }
+
+    private void Port(String[] cmdstr) {
+        if (anonymousLogged || stdUserLogged) {
+            String[] str = cmdstr[1].replaceAll("[^\\d]", " ").trim().replaceAll(" +", " ").split("\\s+");
+
+            try {
+                out.println("200 PORT command successfull.");
+                data = new Socket(str[0] + "." + str[1] + "." + str[2] + "." + str[3],
+                        (Integer.parseInt(str[4]) * 256) + Integer.parseInt(str[5]), null, 20);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } else
             out.println("530 Please login with USER and PASS.");
     }

@@ -18,17 +18,22 @@ import javax.swing.JMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JLabel;
 import java.awt.Color;
-import javax.swing.border.MatteBorder;
 import javax.swing.UIManager;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JScrollPane;
 import java.util.concurrent.TimeUnit;
+import javax.swing.border.LineBorder;
+import javax.swing.JList;
+import javax.swing.DefaultListModel;
 
 public class GUI extends JFrame {
 	private JPanel contentPane;
 	private JTextField txtPercorso;
 	public static JTextArea textAreaLog;
+	private JTextField txtNomeUtente;
+	DefaultListModel model = new DefaultListModel();
+	JList listBoxUtenti = new JList();
 
 	/**
 	 * Launch the application.
@@ -50,15 +55,17 @@ public class GUI extends JFrame {
 	 * Create the frame.
 	 */
 	public GUI() {
+		listBoxUtenti.setModel(model);
+		ListUpdate();
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 768, 469);
+		setBounds(100, 100, 800, 469);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 
 		JMenuBar menuBar = new JMenuBar();
-		menuBar.setBounds(0, 0, 752, 22);
+		menuBar.setBounds(0, 0, 784, 22);
 		contentPane.add(menuBar);
 
 		JMenu mnNewMenu = new JMenu("File");
@@ -73,22 +80,22 @@ public class GUI extends JFrame {
 		JMenuItem mntmArresta = new JMenuItem("Arresta");
 		mnNewMenu.add(mntmArresta);
 
-		JMenuItem menuItem = new JMenuItem("New menu item");
-		mnNewMenu.add(menuItem);
+		JMenuItem mntmEsci = new JMenuItem("Esci");
+		mnNewMenu.add(mntmEsci);
 
 		JLabel lblSelezionaIFile = new JLabel("Seleziona la cartella di radice da condividere via FTP:");
 		lblSelezionaIFile.setBounds(10, 33, 304, 14);
 		contentPane.add(lblSelezionaIFile);
 
-		JLabel lblControlloDelServer = new JLabel("Controllo del server FTP");
-		lblControlloDelServer.setBounds(553, 33, 145, 14);
+		JLabel lblControlloDelServer = new JLabel("Controllo del server FTP:");
+		lblControlloDelServer.setBounds(623, 67, 145, 14);
 		contentPane.add(lblControlloDelServer);
 
 		JPanel panel_1 = new JPanel();
 		panel_1.setForeground(Color.WHITE);
-		panel_1.setBorder(new MatteBorder(1, 1, 1, 1, (Color) new Color(0, 0, 0)));
+		panel_1.setBorder(new LineBorder(new Color(0, 0, 0)));
 		panel_1.setBackground(UIManager.getColor("Button.background"));
-		panel_1.setBounds(563, 58, 119, 155);
+		panel_1.setBounds(623, 92, 119, 106);
 		contentPane.add(panel_1);
 
 		JButton btnAvvia = new JButton("Avvia");
@@ -103,7 +110,8 @@ public class GUI extends JFrame {
 		contentPane.add(lblLogDelServer);
 
 		JPanel panel = new JPanel();
-		panel.setBounds(20, 58, 446, 155);
+		panel.setBorder(new LineBorder(new Color(0, 0, 0)));
+		panel.setBounds(20, 59, 419, 176);
 		contentPane.add(panel);
 		panel.setLayout(null);
 
@@ -112,12 +120,12 @@ public class GUI extends JFrame {
 		panel.add(lblPercorso);
 
 		txtPercorso = new JTextField();
-		txtPercorso.setBounds(72, 18, 261, 20);
+		txtPercorso.setBounds(72, 18, 235, 20);
 		panel.add(txtPercorso);
 		txtPercorso.setColumns(10);
 
 		JButton btnAggiungi = new JButton("Seleziona");
-		btnAggiungi.setBounds(345, 17, 89, 23);
+		btnAggiungi.setBounds(319, 17, 89, 23);
 		panel.add(btnAggiungi);
 
 		JButton btnArresta = new JButton("Arresta");
@@ -132,15 +140,59 @@ public class GUI extends JFrame {
 
 		JLabel lblLaCartellaDa = new JLabel(
 				"<html>La cartella da selezionare sar\u00E0 quella che conterr\u00E0 tutti i file e le directory che il server FTP condivider\u00E0. Tale cartella sar\u00E0 modificabile e leggibile da tutti gli utenti che ne abbiano il permesso. Si consiglia di selezionare un percorso destinato solo all'uso e al corretto funzionamento del server FTP.</html>");
-		lblLaCartellaDa.setBounds(10, 61, 424, 83);
+		lblLaCartellaDa.setBounds(10, 61, 398, 103);
 		panel.add(lblLaCartellaDa);
 
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setBounds(10, 274, 730, 143);
 		contentPane.add(scrollPane);
 
+		Server.lstUtenti.add("pippo");
+		Server.lstUtenti.add("pluto");
+		Server.lstUtenti.add("minnie");
+
 		textAreaLog = new JTextArea();
 		scrollPane.setViewportView(textAreaLog);
+
+		JPanel panel_2 = new JPanel();
+		panel_2.setBorder(new LineBorder(new Color(0, 0, 0)));
+		panel_2.setBounds(451, 59, 154, 176);
+		contentPane.add(panel_2);
+		panel_2.setLayout(null);
+
+		JButton btnAggiungiUtente = new JButton("+");
+		btnAggiungiUtente.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Server.lstUtenti.add(txtNomeUtente.getText());
+				ListUpdate();
+			}
+		});
+		btnAggiungiUtente.setBounds(12, 138, 52, 26);
+		panel_2.add(btnAggiungiUtente);
+
+		JButton btnRimuoviUtente = new JButton("-");
+		btnRimuoviUtente.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			}
+		});
+		btnRimuoviUtente.setBounds(90, 138, 52, 26);
+		panel_2.add(btnRimuoviUtente);
+
+		txtNomeUtente = new JTextField();
+		txtNomeUtente.setBounds(12, 106, 130, 20);
+		panel_2.add(txtNomeUtente);
+		txtNomeUtente.setColumns(10);
+
+		JScrollPane scrollPane_1 = new JScrollPane();
+		scrollPane_1.setBounds(12, 12, 130, 82);
+		panel_2.add(scrollPane_1);
+
+		scrollPane_1.setViewportView(listBoxUtenti);
+
+		JLabel lblGestioneDegliUtenti = new JLabel("Gestione degli utenti:");
+		lblGestioneDegliUtenti.setBounds(451, 33, 145, 14);
+		contentPane.add(lblGestioneDegliUtenti);
+
 		btnAggiungi.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser = new JFileChooser();
@@ -183,5 +235,12 @@ public class GUI extends JFrame {
 				textAreaLog.append(new SimpleDateFormat("hh:mm").format(new Date()) + " " + "Server FTP riavviato\n");
 			}
 		});
+	}
+
+	private void ListUpdate() {
+		model.clear();
+		for (String item : Server.lstUtenti) {
+			model.addElement(item);
+		}
 	}
 }

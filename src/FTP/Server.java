@@ -4,6 +4,7 @@
 package FTP;
 
 import java.net.*;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.io.IOException;
 
@@ -14,10 +15,10 @@ public class Server implements Runnable {
 	public static ExecutorService pool;
 	public static int epsvPort = 1024;
 	public static String ftpPath = "";
+	public static ArrayList<String> lstUtenti = new ArrayList<String>();
 
 	public void run() {
 
-		// Three way handshake
 		try {
 			wscmd = new ServerSocket(21);
 			wscmd.setSoTimeout(2000);
