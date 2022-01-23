@@ -7,7 +7,6 @@ import java.io.*;
 import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Optional;
 
 public class FTPThread implements Runnable {
     private Socket cmd = null;
@@ -196,7 +195,7 @@ public class FTPThread implements Runnable {
                 path = Server.ftpPath + currentPath;
             }
 
-            System.out.println(path);
+            // System.out.println(path);
             File folder = new File(path);
             // System.out.println(folder.getAbsolutePath()); debug
             String list = "";
@@ -530,8 +529,10 @@ public class FTPThread implements Runnable {
             File file = new File(Server.ftpPath + currentPath + "/" + fileToBeRenamed);
             File rename = new File(Server.ftpPath + currentPath + "/" + name);
             boolean b = file.renameTo(rename);
-            if (b)
+            if (b) {
                 out.println("250 File renamed.");
+                fileToBeRenamed = "";
+            }
         } else if (anonymousLogged)
             out.println("550 Access is denied.");
         else

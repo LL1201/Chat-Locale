@@ -12,12 +12,13 @@ Supported commands:
 - PWD
 - CWD
 - CDUP
-- STOR
-- AUTH TLS
-- AUTH SSL
+- STOR 
 - MKD
 - RMD
 - DELE
+- PORT
+- RNFR
+- RNTO
 
 ## Folder Structure
 
