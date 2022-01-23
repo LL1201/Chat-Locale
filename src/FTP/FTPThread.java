@@ -145,7 +145,6 @@ public class FTPThread implements Runnable {
                             break;
                         case "PASV":
                             Pasv();
-                            // out.println("502 Command not implemented.");
                             break;
                         case "QUIT":
                             QuitCmdConnection();
@@ -287,7 +286,12 @@ public class FTPThread implements Runnable {
         if (anonymousLogged || stdUserLogged) {
             int upper = (int) (Math.random() * (190) + 4);
             int lower = (int) (Math.random() * (511) + 1);
-            out.println("227 Entering Passive Mode (127,0,0,1," + upper + "," + lower + ")");
+
+            String[] ip = cmd.getLocalAddress().toString().replaceAll("[^\\d]", " ").trim().replaceAll(" +", " ")
+                    .split("\\s+");
+
+            out.println("227 Entering Passive Mode (" + ip[0] + "," + ip[1] + "," + ip[2] + "," + ip[3] + "," + upper
+                    + "," + lower + ")");
 
             try {
                 wsdata = new ServerSocket(((upper * 256) + lower));

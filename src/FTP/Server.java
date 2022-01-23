@@ -10,6 +10,7 @@ import java.io.IOException;
 
 public class Server implements Runnable {
 
+	private String ip;
 	public static boolean serverClose = true;
 	private static ServerSocket wscmd = null;
 	public static ExecutorService pool;
@@ -17,10 +18,15 @@ public class Server implements Runnable {
 	public static String ftpPath = "";
 	public static ArrayList<Utente> lstUtenti = new ArrayList<Utente>();
 
-	public void run() {
+	public Server(String ip) {
+		this.ip = ip;
+	}
 
+	public void run() {
+		SocketAddress socketAddress = new InetSocketAddress(ip, 21);
 		try {
-			wscmd = new ServerSocket(21);
+			wscmd = new ServerSocket();
+			wscmd.bind(socketAddress);
 			wscmd.setSoTimeout(2000);
 		} catch (IOException e) {
 			e.printStackTrace();

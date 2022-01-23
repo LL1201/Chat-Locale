@@ -26,6 +26,7 @@ import javax.swing.JList;
 import javax.swing.DefaultListModel;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import org.apache.commons.validator.routines.InetAddressValidator;
 
 public class GUI extends JFrame {
 	private JPanel contentPane;
@@ -35,6 +36,7 @@ public class GUI extends JFrame {
 	DefaultListModel model = new DefaultListModel();
 	JList listBoxUtenti = new JList();
 	private JTextField txtPassword;
+	private JTextField txtIP;
 
 	/**
 	 * Launch the application.
@@ -78,14 +80,14 @@ public class GUI extends JFrame {
 		contentPane.add(lblSelezionaIFile);
 
 		JLabel lblControlloDelServer = new JLabel("Controllo del server FTP:");
-		lblControlloDelServer.setBounds(739, 100, 145, 14);
+		lblControlloDelServer.setBounds(739, 33, 145, 14);
 		contentPane.add(lblControlloDelServer);
 
 		JPanel panel_1 = new JPanel();
 		panel_1.setForeground(Color.WHITE);
 		panel_1.setBorder(new LineBorder(new Color(0, 0, 0)));
 		panel_1.setBackground(UIManager.getColor("Button.background"));
-		panel_1.setBounds(739, 125, 119, 106);
+		panel_1.setBounds(739, 58, 119, 106);
 		contentPane.add(panel_1);
 
 		JButton btnAvvia = new JButton("Avvia");
@@ -127,6 +129,7 @@ public class GUI extends JFrame {
 				btnRiavvia.setEnabled(false);
 				txtPercorso.setEditable(true);
 				btnAggiungi.setEnabled(true);
+				txtIP.setEditable(true);
 				Server.Shutdown();
 			}
 		});
@@ -232,6 +235,10 @@ public class GUI extends JFrame {
 		lblGestioneDegliUtenti.setBounds(451, 33, 145, 14);
 		contentPane.add(lblGestioneDegliUtenti);
 
+		JLabel lblNewLabel = new JLabel("Indirizzo IP:");
+		lblNewLabel.setBounds(739, 215, 77, 16);
+		contentPane.add(lblNewLabel);
+
 		btnAggiungi.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser = new JFileChooser();
@@ -248,19 +255,32 @@ public class GUI extends JFrame {
 				}
 			}
 		});
+
+		txtIP = new JTextField();
+		txtIP.setBounds(739, 243, 119, 20);
+		contentPane.add(txtIP);
+		txtIP.setColumns(10);
+
 		btnAvvia.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				InetAddressValidator validator = InetAddressValidator.getInstance();
 				if (!txtPercorso.getText().equals("")) {
-					btnAvvia.setEnabled(false);
-					btnArresta.setEnabled(true);
-					btnRiavvia.setEnabled(true);
-					Server.serverClose = true;
-					FTPThread.clientClose = true;
-					Server.pool = Executors.newFixedThreadPool(50);
-					new Thread(new Server()).start();
-					txtPercorso.setEditable(false);
-					btnAggiungi.setEnabled(false);
-					textAreaLog.append(new SimpleDateFormat("hh:mm").format(new Date()) + " " + "Server FTP avviato\n");
+					if (validator.isValidInet4Address(txtIP.getText())) {
+						btnAvvia.setEnabled(false);
+						btnArresta.setEnabled(true);
+						btnRiavvia.setEnabled(true);
+						Server.serverClose = true;
+						FTPThread.clientClose = true;
+						Server.pool = Executors.newFixedThreadPool(50);
+						new Thread(new Server(txtIP.getText())).start();
+						txtPercorso.setEditable(false);
+						btnAggiungi.setEnabled(false);
+						txtIP.setEditable(false);
+						textAreaLog.append(
+								new SimpleDateFormat("hh:mm").format(new Date()) + " " + "Server FTP avviato\n");
+					} else
+						JOptionPane.showMessageDialog(new JFrame(), "Indirizzo IP non valido!", "Inane warning",
+								JOptionPane.WARNING_MESSAGE);
 				} else
 					JOptionPane.showMessageDialog(new JFrame(), "Inserisci un percorso!", "Inane warning",
 							JOptionPane.WARNING_MESSAGE);
@@ -279,7 +299,7 @@ public class GUI extends JFrame {
 				Server.serverClose = true;
 				FTPThread.clientClose = true;
 				Server.pool = Executors.newFixedThreadPool(50);
-				new Thread(new Server()).start();
+				new Thread(new Server(txtIP.getText())).start();
 				txtPercorso.setEditable(false);
 				btnAggiungi.setEnabled(false);
 				textAreaLog.append(new SimpleDateFormat("hh:mm").format(new Date()) + " " + "Server FTP riavviato\n");
