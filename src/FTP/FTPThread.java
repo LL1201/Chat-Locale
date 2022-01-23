@@ -290,8 +290,25 @@ public class FTPThread implements Runnable {
             String[] ip = cmd.getLocalAddress().toString().replaceAll("[^\\d]", " ").trim().replaceAll(" +", " ")
                     .split("\\s+");
 
-            out.println("227 Entering Passive Mode (" + ip[0] + "," + ip[1] + "," + ip[2] + "," + ip[3] + "," + upper
-                    + "," + lower + ")");
+            if (isPrivateIPv4(ip[0] + "." + ip[1] + "." + ip[2] + "." + ip[3])) {
+                out.println(
+                        "227 Entering Passive Mode (" + ip[0] + "," + ip[1] + "," + ip[2] + "," + ip[3] + "," + upper
+                                + "," + lower + ")");
+            } else {
+                try {
+                    URL whatismyip = new URL("http://checkip.amazonaws.com");
+                    BufferedReader in = new BufferedReader(new InputStreamReader(
+                            whatismyip.openStream()));
+
+                    String ipPublic = in.readLine(); // you get the IP as a String
+                    ip = ipPublic.replaceAll("[^\\d]", " ").trim().replaceAll(" +", " ")
+                            .split("\\s+");
+                } catch (Exception e) {
+                }
+                out.println(
+                        "227 Entering Passive Mode (" + ip[0] + "," + ip[1] + "," + ip[2] + "," + ip[3] + "," + upper
+                                + "," + lower + ")");
+            }
 
             try {
                 wsdata = new ServerSocket(((upper * 256) + lower));
@@ -541,6 +558,31 @@ public class FTPThread implements Runnable {
             } else
                 return false;
         }
+        return false;
+    }
+
+    private boolean isPrivateIPv4(String ipAddress) {
+        try {
+            String[] ipAddressArray = ipAddress.split("\\.");
+            int[] ipParts = new int[ipAddressArray.length];
+            for (int i = 0; i < ipAddressArray.length; i++) {
+                ipParts[i] = Integer.parseInt(ipAddressArray[i].trim());
+            }
+
+            switch (ipParts[0]) {
+                case 10:
+                case 127:
+                    return true;
+                case 172:
+                    return (ipParts[1] >= 16) && (ipParts[1] < 32);
+                case 192:
+                    return (ipParts[1] == 168);
+                case 169:
+                    return (ipParts[1] == 254);
+            }
+        } catch (Exception ex) {
+        }
+
         return false;
     }
 }
