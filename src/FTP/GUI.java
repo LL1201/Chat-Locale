@@ -13,10 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.Executors;
 import java.awt.event.ActionEvent;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JMenu;
 import javax.swing.JLabel;
 import java.awt.Color;
 import javax.swing.UIManager;
@@ -76,29 +73,6 @@ public class GUI extends JFrame {
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 
-		JMenuBar menuBar = new JMenuBar();
-		menuBar.setBounds(0, 0, 896, 22);
-		contentPane.add(menuBar);
-
-		JMenu mnNewMenu = new JMenu("File");
-		menuBar.add(mnNewMenu);
-
-		JMenuItem mntmRiavvia = new JMenuItem("Riavvia");
-		mnNewMenu.add(mntmRiavvia);
-
-		JMenuItem mntmAvvia = new JMenuItem("Avvia");
-		mnNewMenu.add(mntmAvvia);
-
-		JMenuItem mntmArresta = new JMenuItem("Arresta");
-		mnNewMenu.add(mntmArresta);
-
-		JMenuItem mntmEsci = new JMenuItem("Esci");
-		mntmEsci.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-			}
-		});
-		mnNewMenu.add(mntmEsci);
-
 		JLabel lblSelezionaIFile = new JLabel("Seleziona la cartella di radice da condividere via FTP:");
 		lblSelezionaIFile.setBounds(10, 33, 304, 14);
 		contentPane.add(lblSelezionaIFile);
@@ -118,8 +92,8 @@ public class GUI extends JFrame {
 		panel_1.add(btnAvvia);
 
 		JButton btnRiavvia = new JButton("Riavvia");
-
 		panel_1.add(btnRiavvia);
+		btnRiavvia.setEnabled(false);
 
 		JLabel lblLogDelServer = new JLabel("Log del server FTP:");
 		lblLogDelServer.setBounds(10, 287, 109, 14);
@@ -145,8 +119,12 @@ public class GUI extends JFrame {
 		panel.add(btnAggiungi);
 
 		JButton btnArresta = new JButton("Arresta");
+		btnArresta.setEnabled(false);
 		btnArresta.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				btnAvvia.setEnabled(true);
+				btnArresta.setEnabled(false);
+				btnRiavvia.setEnabled(false);
 				txtPercorso.setEditable(true);
 				btnAggiungi.setEnabled(true);
 				Server.Shutdown();
@@ -241,11 +219,11 @@ public class GUI extends JFrame {
 		});
 		btnModifica.setBounds(76, 165, 118, 26);
 		panel_2.add(btnModifica);
-		
+
 		JLabel lblNomeUtente = new JLabel("Nome utente:");
 		lblNomeUtente.setBounds(12, 107, 114, 14);
 		panel_2.add(lblNomeUtente);
-		
+
 		JLabel lblPassword = new JLabel("Password:");
 		lblPassword.setBounds(144, 106, 66, 14);
 		panel_2.add(lblPassword);
@@ -272,13 +250,20 @@ public class GUI extends JFrame {
 		});
 		btnAvvia.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Server.serverClose = true;
-				FTPThread.clientClose = true;
-				Server.pool = Executors.newFixedThreadPool(50);
-				new Thread(new Server()).start();
-				txtPercorso.setEditable(false);
-				btnAggiungi.setEnabled(false);
-				textAreaLog.append(new SimpleDateFormat("hh:mm").format(new Date()) + " " + "Server FTP avviato\n");
+				if (!txtPercorso.getText().equals("")) {
+					btnAvvia.setEnabled(false);
+					btnArresta.setEnabled(true);
+					btnRiavvia.setEnabled(true);
+					Server.serverClose = true;
+					FTPThread.clientClose = true;
+					Server.pool = Executors.newFixedThreadPool(50);
+					new Thread(new Server()).start();
+					txtPercorso.setEditable(false);
+					btnAggiungi.setEnabled(false);
+					textAreaLog.append(new SimpleDateFormat("hh:mm").format(new Date()) + " " + "Server FTP avviato\n");
+				} else
+					JOptionPane.showMessageDialog(new JFrame(), "Inserisci un percorso!", "Inane warning",
+							JOptionPane.WARNING_MESSAGE);
 			}
 		});
 

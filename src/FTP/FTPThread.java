@@ -254,7 +254,6 @@ public class FTPThread implements Runnable {
                 FileInputStream inputStream = null;
                 BufferedInputStream bInputStream = null;
                 OutputStream outputStream = null;
-                // File file = new File("file" + currentPath + cmdstr[1]);
                 File file = new File(path);
                 byte[] bytes = new byte[(int) file.length()];
 
