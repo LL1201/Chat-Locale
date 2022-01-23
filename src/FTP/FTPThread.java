@@ -75,10 +75,6 @@ public class FTPThread implements Runnable {
                             break;
                         case "OPTS":
                             out.println("502 Command not implemented.");
-                            /*
-                             * if (cmdstr[1].toUpperCase().equals("UTF8"))
-                             * out.println("200 OPTS UTF8 command successful - UTF8 encoding now ON.");
-                             */
                             break;
                         case "AUTH":
                             if (cmdstr[1].toUpperCase().equals("TLS"))
@@ -101,10 +97,7 @@ public class FTPThread implements Runnable {
                                 out.println("500 Command not understood.");
                             break;
                         case "LIST":
-                            if (anonymousLogged || stdUserLogged)
-                                List(cmdstr);
-                            else
-                                out.println("530 Please login with USER and PASS.");
+                            List(cmdstr);
                             break;
                         case "RETR":
                             Retr(cmdstr[1]);
