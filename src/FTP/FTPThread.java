@@ -7,6 +7,7 @@ import java.io.*;
 import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Optional;
 
 public class FTPThread implements Runnable {
     private Socket cmd = null;
@@ -21,6 +22,7 @@ public class FTPThread implements Runnable {
     private boolean anonymousLogged = false;
     private boolean stdUserLogged = false;
     private String userName = "";
+    private String fileToBeRenamed = "";
 
     public FTPThread(Socket cmd) {
         this.cmd = cmd;
@@ -63,6 +65,12 @@ public class FTPThread implements Runnable {
                 cmdstr = str.split("\\s+");
                 if (cmdstr.length > 1) {
                     switch (cmdstr[0].toUpperCase()) {
+                        case "RNTO":
+                            Rnto(cmdstr[1]);
+                            break;
+                        case "RNFR":
+                            Rnfr(cmdstr[1]);
+                            break;
                         case "PORT":
                             Port(cmdstr);
                             break;
@@ -334,7 +342,7 @@ public class FTPThread implements Runnable {
     }
 
     private void Stor(String fileName) {
-        if (anonymousLogged || stdUserLogged) {
+        if (stdUserLogged) {
             out.println("150 Data connection already open; transfer starting.");
             String path = "";
 
@@ -382,7 +390,9 @@ public class FTPThread implements Runnable {
                 e.printStackTrace();
             }
             out.println("226 Transfer complete. Closing data connection.");
-        } else
+        } else if (anonymousLogged)
+            out.println("550 Access is denied.");
+        else
             out.println("530 Please login with USER and PASS.");
     }
 
@@ -448,9 +458,10 @@ public class FTPThread implements Runnable {
     private void Pass(String pass) {
         if (userName.equals(""))
             out.println("503 Login with USER first.");
-        else if (userName.equals("anonymous"))
+        else if (userName.equals("anonymous")) {
             anonymousLogged = true;
-        else if (Server.lstUtenti.contains(new Utente(userName.toLowerCase(), pass))) {
+            out.println("230 User logged in");
+        } else if (CheckUserPassword(userName, pass)) {
             out.println("230 User logged in");
             stdUserLogged = true;
         } else
@@ -458,26 +469,32 @@ public class FTPThread implements Runnable {
     }
 
     private void Mkd(String name) {
-        if (stdUserLogged || anonymousLogged) {
+        if (stdUserLogged) {
             new File(Server.ftpPath + currentPath + "/" + name).mkdir();
             out.println("257 Folder created.");
-        } else
+        } else if (anonymousLogged)
+            out.println("550 Access is denied.");
+        else
             out.println("530 Please login with USER and PASS.");
     }
 
     private void Rmd(String name) {
-        if (anonymousLogged || stdUserLogged) {
+        if (stdUserLogged) {
             new File(Server.ftpPath + currentPath + "/" + name).delete();
             out.println("250 Folder deleted.");
-        } else
+        } else if (anonymousLogged)
+            out.println("550 Access is denied.");
+        else
             out.println("530 Please login with USER and PASS.");
     }
 
     private void Dele(String name) {
-        if (anonymousLogged || stdUserLogged) {
+        if (stdUserLogged) {
             new File(Server.ftpPath + currentPath + "/" + name).delete();
             out.println("250 File deleted.");
-        } else
+        } else if (anonymousLogged)
+            out.println("550 Access is denied.");
+        else
             out.println("530 Please login with USER and PASS.");
     }
 
@@ -494,5 +511,40 @@ public class FTPThread implements Runnable {
             }
         } else
             out.println("530 Please login with USER and PASS.");
+    }
+
+    private void Rnfr(String fileName) {
+        if (stdUserLogged) {
+            if (fileName != null) {
+                fileToBeRenamed = fileName;
+                out.println("350 RNFR accepted. Please supply new name for RNTO.");
+            }
+        } else if (anonymousLogged)
+            out.println("550 Access is denied.");
+        else
+            out.println("530 Please login with USER and PASS.");
+    }
+
+    private void Rnto(String name) {
+        if (stdUserLogged) {
+            File file = new File(Server.ftpPath + currentPath + "/" + fileToBeRenamed);
+            File rename = new File(Server.ftpPath + currentPath + "/" + name);
+            boolean b = file.renameTo(rename);
+            if (b)
+                out.println("250 File renamed.");
+        } else if (anonymousLogged)
+            out.println("550 Access is denied.");
+        else
+            out.println("530 Please login with USER and PASS.");
+    }
+
+    private boolean CheckUserPassword(String name, String password) {
+        for (Utente u : Server.lstUtenti) {
+            if (u.name.equals(name) && u.password.equals(password)) {
+                return true;
+            } else
+                return false;
+        }
+        return false;
     }
 }
