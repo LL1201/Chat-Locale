@@ -15,7 +15,7 @@ public class Server implements Runnable {
 	public static ExecutorService pool;
 	public static int epsvPort = 1024;
 	public static String ftpPath = "";
-	public static ArrayList<String> lstUtenti = new ArrayList<String>();
+	public static ArrayList<Utente> lstUtenti = new ArrayList<Utente>();
 
 	public void run() {
 

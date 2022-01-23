@@ -20,6 +20,7 @@ public class FTPThread implements Runnable {
     public static boolean clientClose = true;
     private boolean anonymousLogged = false;
     private boolean stdUserLogged = false;
+    private String userName = "";
 
     public FTPThread(Socket cmd) {
         this.cmd = cmd;
@@ -437,15 +438,23 @@ public class FTPThread implements Runnable {
     private void User(String user) {
         if (user.equalsIgnoreCase("anonymous")) {
             out.println("331 Anonymous access allowed");
-            anonymousLogged = true;
+            userName = "anonymous";
+        } else {
+            out.println("331 Password required.");
+            userName = user;
         }
     }
 
     private void Pass(String pass) {
-        if (anonymousLogged)
-            out.println("230 Anonymous logged in.");
-        else
-            out.println("503 Login first.");
+        if (userName.equals(""))
+            out.println("503 Login with USER first.");
+        else if (userName.equals("anonymous"))
+            anonymousLogged = true;
+        else if (Server.lstUtenti.contains(new Utente(userName.toLowerCase(), pass))) {
+            out.println("230 User logged in");
+            stdUserLogged = true;
+        } else
+            out.println("530 User cannot log in.");
     }
 
     private void Mkd(String name) {

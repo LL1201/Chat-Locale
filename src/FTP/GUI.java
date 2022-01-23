@@ -34,6 +34,7 @@ public class GUI extends JFrame {
 	private JTextField txtNomeUtente;
 	DefaultListModel model = new DefaultListModel();
 	JList listBoxUtenti = new JList();
+	private JTextField txtPassword;
 
 	/**
 	 * Launch the application.
@@ -58,14 +59,14 @@ public class GUI extends JFrame {
 		listBoxUtenti.setModel(model);
 		ListUpdate();
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 800, 469);
+		setBounds(100, 100, 912, 469);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 
 		JMenuBar menuBar = new JMenuBar();
-		menuBar.setBounds(0, 0, 784, 22);
+		menuBar.setBounds(0, 0, 896, 22);
 		contentPane.add(menuBar);
 
 		JMenu mnNewMenu = new JMenu("File");
@@ -81,6 +82,10 @@ public class GUI extends JFrame {
 		mnNewMenu.add(mntmArresta);
 
 		JMenuItem mntmEsci = new JMenuItem("Esci");
+		mntmEsci.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			}
+		});
 		mnNewMenu.add(mntmEsci);
 
 		JLabel lblSelezionaIFile = new JLabel("Seleziona la cartella di radice da condividere via FTP:");
@@ -88,14 +93,14 @@ public class GUI extends JFrame {
 		contentPane.add(lblSelezionaIFile);
 
 		JLabel lblControlloDelServer = new JLabel("Controllo del server FTP:");
-		lblControlloDelServer.setBounds(623, 67, 145, 14);
+		lblControlloDelServer.setBounds(739, 59, 145, 14);
 		contentPane.add(lblControlloDelServer);
 
 		JPanel panel_1 = new JPanel();
 		panel_1.setForeground(Color.WHITE);
 		panel_1.setBorder(new LineBorder(new Color(0, 0, 0)));
 		panel_1.setBackground(UIManager.getColor("Button.background"));
-		panel_1.setBounds(623, 92, 119, 106);
+		panel_1.setBounds(739, 84, 119, 106);
 		contentPane.add(panel_1);
 
 		JButton btnAvvia = new JButton("Avvia");
@@ -152,16 +157,17 @@ public class GUI extends JFrame {
 
 		JPanel panel_2 = new JPanel();
 		panel_2.setBorder(new LineBorder(new Color(0, 0, 0)));
-		panel_2.setBounds(451, 59, 154, 176);
+		panel_2.setBounds(451, 59, 270, 176);
 		contentPane.add(panel_2);
 		panel_2.setLayout(null);
 
 		JButton btnAggiungiUtente = new JButton("+");
 		btnAggiungiUtente.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Server.lstUtenti.add(txtNomeUtente.getText());
+				Server.lstUtenti.add(new Utente(txtNomeUtente.getText(), txtPassword.getText()));
 				ListUpdate();
 				txtNomeUtente.setText("");
+				txtPassword.setText("");
 			}
 		});
 		btnAggiungiUtente.setBounds(12, 138, 52, 26);
@@ -175,19 +181,32 @@ public class GUI extends JFrame {
 				ListUpdate();
 			}
 		});
-		btnRimuoviUtente.setBounds(90, 138, 52, 26);
+		btnRimuoviUtente.setBounds(206, 138, 52, 26);
 		panel_2.add(btnRimuoviUtente);
 
 		txtNomeUtente = new JTextField();
-		txtNomeUtente.setBounds(12, 106, 130, 20);
+		txtNomeUtente.setBounds(12, 106, 114, 20);
 		panel_2.add(txtNomeUtente);
 		txtNomeUtente.setColumns(10);
 
 		JScrollPane scrollPane_1 = new JScrollPane();
-		scrollPane_1.setBounds(12, 12, 130, 82);
+		scrollPane_1.setBounds(12, 12, 246, 82);
 		panel_2.add(scrollPane_1);
 
 		scrollPane_1.setViewportView(listBoxUtenti);
+
+		txtPassword = new JTextField();
+		txtPassword.setColumns(10);
+		txtPassword.setBounds(144, 106, 114, 20);
+		panel_2.add(txtPassword);
+
+		JButton btnModifica = new JButton("Modifica");
+		btnModifica.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			}
+		});
+		btnModifica.setBounds(76, 138, 118, 26);
+		panel_2.add(btnModifica);
 
 		JLabel lblGestioneDegliUtenti = new JLabel("Gestione degli utenti:");
 		lblGestioneDegliUtenti.setBounds(451, 33, 145, 14);
@@ -239,8 +258,8 @@ public class GUI extends JFrame {
 
 	private void ListUpdate() {
 		model.clear();
-		for (String item : Server.lstUtenti) {
-			model.addElement(item);
+		for (Utente item : Server.lstUtenti) {
+			model.addElement(item.name);
 		}
 	}
 }
