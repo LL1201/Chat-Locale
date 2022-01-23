@@ -347,7 +347,6 @@ public class FTPThread implements Runnable {
             InputStream inputStream = null;
             int current = 0;
             int bytesRead;
-            // byte[] bytes = new byte[602238689];
             byte[] bytes = new byte[602238689];
 
             try {
