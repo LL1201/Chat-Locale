@@ -28,12 +28,14 @@ public class FTPThread implements Runnable {
     }
 
     public void run() {
+        // timeout per lo spegimento del server e la disconnessione dei client
         try {
             cmd.setSoTimeout(4500);
         } catch (SocketException e1) {
             e1.printStackTrace();
         }
 
+        // risposta iniziale del server e assegnazione dei vari stream e buffer
         try {
             in = new BufferedReader(new InputStreamReader(cmd.getInputStream()));
             out = new PrintWriter(cmd.getOutputStream(), true);
@@ -46,7 +48,9 @@ public class FTPThread implements Runnable {
             System.out.println("Unable to get I/O stream on socket!");
         }
 
+        // finché clientclose rimane true (comando di server acceso) il ciclo continua
         while (clientClose) {
+            // lettura dei comandi inviatai dal client
             try {
                 if (cmd.isConnected())
                     str = in.readLine();
@@ -56,12 +60,18 @@ public class FTPThread implements Runnable {
                 continue;
             }
 
+            // verifica della validità del contenuto della stringa. Nel caso di null viene
+            // disconnesso il client
             if (str != null) {
                 System.out.println("Remote host: " + cmd.getInetAddress() + ": " + str); // debug
                 GUI.textAreaLog.append(new SimpleDateFormat("hh:mm").format(new Date()) + " "
                         + "Remote host: " + cmd.getInetAddress() + ": " + str + "\n");
 
+                // se il comando è composto da più parti questo viene suddiviso in un vettore di
+                // stringhe
                 cmdstr = str.split("\\s+");
+
+                // nel caso di un comando composto da più parole
                 if (cmdstr.length > 1) {
                     switch (cmdstr[0].toUpperCase()) {
                         case "RNTO":
@@ -127,6 +137,7 @@ public class FTPThread implements Runnable {
                             out.println("500 Command not understood.");
                     }
                 } else
+                    // caso in cui il comando è composto da una sola parola
                     switch (str.toUpperCase()) {
                         case "SYST":
                             out.println("215 Windows");
@@ -156,6 +167,7 @@ public class FTPThread implements Runnable {
                             out.println("500 Command not understood.");
                     }
             } else {
+                // se la stringa null viene chiamato il metodo per la disconnessione del client
                 QuitCmdConnection();
                 break;
             }
@@ -170,6 +182,7 @@ public class FTPThread implements Runnable {
         if (anonymousLogged || stdUserLogged) {
             out.println("150 Data connection is ready for ASCII.");
 
+            // passaggi per verificare il percorso inserito come attributo, se presente
             String path = "";
             if (cmdstr.length > 2) {
                 for (int i = 1; i < cmdstr.length; i++) {
@@ -192,6 +205,7 @@ public class FTPThread implements Runnable {
             // System.out.println(folder.getAbsolutePath()); debug
             String list = "";
 
+            // ciclo per determinare i permessi dei file nella cartella richiesta
             for (File fileEntry : folder.listFiles()) {
                 if (fileEntry.isFile())
                     list += "-";
@@ -242,12 +256,22 @@ public class FTPThread implements Runnable {
     private void Retr(String fileName) {
         if (anonymousLogged || stdUserLogged) {
             out.println("150 Data connection already open; transfer starting.");
+
+            // passaggi per determinare il percorso del file da inviare al client
             String path = "";
             if (currentPath.equals("/"))
                 path = Server.ftpPath + currentPath + fileName;
             else
                 path = Server.ftpPath + currentPath + "/" + fileName;
 
+            try {
+                path = URLDecoder.decode(path, "UTF-8");
+            } catch (UnsupportedEncodingException e1) {
+                e1.printStackTrace();
+            }
+
+            // se il file esiste quest'ultimo viene inviato al client scrivendolo in un
+            // buffer
             if (new File(path).exists()) {
 
                 FileInputStream inputStream = null;
@@ -284,17 +308,24 @@ public class FTPThread implements Runnable {
 
     private void Pasv() {
         if (anonymousLogged || stdUserLogged) {
+            // generazione della porta casuale con i due interi, come previsto da protocollo
+            // FTP
             int upper = (int) (Math.random() * (190) + 4);
             int lower = (int) (Math.random() * (511) + 1);
 
+            // conversione dell'indirizzo con i punti in un vettore contenente un gruppo per
+            // ogni cella
             String[] ip = cmd.getLocalAddress().toString().replaceAll("[^\\d]", " ").trim().replaceAll(" +", " ")
                     .split("\\s+");
 
+            // verifica per controllare se l'indirizzo IP del client sia privato o pubblico
             if (isPrivateIPv4(ip[0] + "." + ip[1] + "." + ip[2] + "." + ip[3])) {
                 out.println(
                         "227 Entering Passive Mode (" + ip[0] + "," + ip[1] + "," + ip[2] + "," + ip[3] + "," + upper
                                 + "," + lower + ")");
             } else {
+                // se indirizzo è pubblico viene utilizzato un servizio che determina l'IP
+                // pubblico a cui il server fa riferimento
                 try {
                     URL whatismyip = new URL("http://checkip.amazonaws.com");
                     BufferedReader in = new BufferedReader(new InputStreamReader(
@@ -311,6 +342,7 @@ public class FTPThread implements Runnable {
             }
 
             try {
+                // apertura di un welcoming socket per accettare il client
                 wsdata = new ServerSocket(((upper * 256) + lower));
                 data = wsdata.accept();
             } catch (IOException e) {
@@ -336,6 +368,7 @@ public class FTPThread implements Runnable {
 
     private void Epsv() {
         if (anonymousLogged || stdUserLogged) {
+            // se il conto della porta è arrivato al massimo disponibile si inizierà da 1024
             if (Server.epsvPort == 49151)
                 Server.epsvPort = 1024;
             else
@@ -343,6 +376,7 @@ public class FTPThread implements Runnable {
 
             out.println("229 Entering Extended Passive Mode (|||" + Server.epsvPort + "|).");
             try {
+                // apertura del welcoming socket per accettare il client
                 wsdata = new ServerSocket(Server.epsvPort);
                 data = wsdata.accept();
             } catch (IOException e) {
@@ -358,6 +392,7 @@ public class FTPThread implements Runnable {
             out.println("150 Data connection already open; transfer starting.");
             String path = "";
 
+            // passaggi per determinare il percorso corretto da memorizzare
             if (currentPath.equals("/"))
                 path = Server.ftpPath + currentPath + fileName;
             else
@@ -370,6 +405,8 @@ public class FTPThread implements Runnable {
             int bytesRead;
             byte[] bytes = new byte[602238689];
 
+            // attraverso la scrittura dei byte del file sul buffer il client permette al
+            // server di acquisire le informazioni del file e scriverlo in memoria
             try {
                 inputStream = data.getInputStream();
                 fOutputStream = new FileOutputStream(path);
@@ -409,6 +446,8 @@ public class FTPThread implements Runnable {
 
     private void Cdup() {
         if (anonymousLogged || stdUserLogged) {
+            // la stringa del percorso corrente viene aggiornata rimuovendo l'ultima
+            // directory
             if (!currentPath.equals("/"))
                 currentPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
 
@@ -422,6 +461,7 @@ public class FTPThread implements Runnable {
     private void Cwd(String str) {
         // current path inizia SEMPRE con "/" e termina senza nulla
         if (anonymousLogged || stdUserLogged) {
+            // determinazione della validità del percorso
             if (str.charAt(0) == '/') {
                 if (str.equals("/")) {
                     currentPath = "/";
@@ -457,6 +497,8 @@ public class FTPThread implements Runnable {
     }
 
     private void User(String user) {
+        // se il nome utente viene scritto in una variabile con particolare attenzione
+        // al messaggio di risposta di anonymous
         if (user.equalsIgnoreCase("anonymous")) {
             out.println("331 Anonymous access allowed");
             userName = "anonymous";
@@ -467,6 +509,9 @@ public class FTPThread implements Runnable {
     }
 
     private void Pass(String pass) {
+        // viene validata la variabile contente il nome utente e successivamente
+        // confrontato il valore della password inserito con quello previsto nella lista
+        // e nel momento di inserimento dell'utente desiderato
         if (userName.equals(""))
             out.println("503 Login with USER first.");
         else if (userName.equals("anonymous")) {
@@ -480,6 +525,7 @@ public class FTPThread implements Runnable {
     }
 
     private void Mkd(String name) {
+        // viene creata la cartella con il nome indicato nel percorso corrente
         if (stdUserLogged) {
             new File(Server.ftpPath + currentPath + "/" + name).mkdir();
             out.println("257 Folder created.");
@@ -490,6 +536,7 @@ public class FTPThread implements Runnable {
     }
 
     private void Rmd(String name) {
+        // la cartella specificata viene eliminata dal percorso corrente
         if (stdUserLogged) {
             new File(Server.ftpPath + currentPath + "/" + name).delete();
             out.println("250 Folder deleted.");
@@ -500,6 +547,7 @@ public class FTPThread implements Runnable {
     }
 
     private void Dele(String name) {
+        // aliminazione file
         if (stdUserLogged) {
             new File(Server.ftpPath + currentPath + "/" + name).delete();
             out.println("250 File deleted.");
@@ -510,6 +558,9 @@ public class FTPThread implements Runnable {
     }
 
     private void Port(String[] cmdstr) {
+        // il comando PORT viene utilizzato per attivare la modalità attiva del server
+        // viene letta la stringa inviata dal client in modo da ottenere il numero di
+        // porta, come da protocollo FTP
         if (anonymousLogged || stdUserLogged) {
             String[] str = cmdstr[1].replaceAll("[^\\d]", " ").trim().replaceAll(" +", " ").split("\\s+");
 
@@ -525,6 +576,7 @@ public class FTPThread implements Runnable {
     }
 
     private void Rnfr(String fileName) {
+        // memorizzazione della cartella o file che si vuole rinominare
         if (stdUserLogged) {
             if (fileName != null) {
                 fileToBeRenamed = fileName;
@@ -537,6 +589,7 @@ public class FTPThread implements Runnable {
     }
 
     private void Rnto(String name) {
+        // effettiva rinominazione del file o cartella
         if (stdUserLogged) {
             File file = new File(Server.ftpPath + currentPath + "/" + fileToBeRenamed);
             File rename = new File(Server.ftpPath + currentPath + "/" + name);
@@ -552,6 +605,8 @@ public class FTPThread implements Runnable {
     }
 
     private boolean CheckUserPassword(String name, String password) {
+        // ciclo per verificare la validità della password inserita per un utente
+        // desiderato
         for (Utente u : Server.lstUtenti) {
             if (u.name.equals(name) && u.password.equals(password)) {
                 return true;
@@ -562,6 +617,7 @@ public class FTPThread implements Runnable {
     }
 
     private boolean isPrivateIPv4(String ipAddress) {
+        // verifica che l'indirizzo passato è ipv4 privato
         try {
             String[] ipAddressArray = ipAddress.split("\\.");
             int[] ipParts = new int[ipAddressArray.length];
