@@ -20,17 +20,21 @@ import java.net.Socket;
 import java.util.concurrent.Executors;
 import java.awt.event.ActionEvent;
 import javax.swing.JScrollPane;
+import java.awt.event.WindowFocusListener;
+import java.awt.event.WindowEvent;
+import java.awt.Component;
+import javax.swing.ScrollPaneConstants;
 
 public class GUI extends JFrame {
 
 	private JPanel contentPane;
 	private JTextField txtNomeChat;
-	private JTextField txtMessaggio;
 	JButton btnDisconnetti = new JButton("Disconnettiti");
 
 	public ChatClient chatClient;
 	private JTextField txtIpServer;
 	public static JTextArea txtChat;
+	public static JTextArea txtMessaggio;
 
 	/**
 	 * Launch the application.
@@ -52,9 +56,19 @@ public class GUI extends JFrame {
 	 * Create the frame.
 	 */
 	public GUI() {
+		addWindowFocusListener(new WindowFocusListener() {
+			public void windowGainedFocus(WindowEvent e) {
+				Notifica.windowFocus = false;
+			}
+
+			public void windowLostFocus(WindowEvent e) {
+				Notifica.windowFocus = true;
+			}
+		});
+		setResizable(false);
 		setTitle("Loner Chat Locale");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 594, 564);
+		setBounds(100, 100, 594, 585);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 
@@ -75,12 +89,6 @@ public class GUI extends JFrame {
 		lblNewLabel_1.setBounds(190, 11, 208, 20);
 		contentPane.add(lblNewLabel_1);
 
-		txtMessaggio = new JTextField();
-		txtMessaggio.setEnabled(false);
-		txtMessaggio.setBounds(10, 478, 431, 36);
-		contentPane.add(txtMessaggio);
-		txtMessaggio.setColumns(10);
-
 		JButton btnInvia = new JButton("INVIA");
 		btnInvia.setEnabled(false);
 		btnInvia.addActionListener(new ActionListener() {
@@ -89,7 +97,7 @@ public class GUI extends JFrame {
 				txtMessaggio.setText("");
 			}
 		});
-		btnInvia.setBounds(451, 478, 117, 36);
+		btnInvia.setBounds(451, 478, 117, 60);
 		contentPane.add(btnInvia);
 
 		JButton btnConnetti = new JButton("Connettiti");
@@ -164,10 +172,23 @@ public class GUI extends JFrame {
 		txtChat.setBounds(10, 176, 558, 291);
 		contentPane.add(txtChat);
 
+		txtMessaggio = new JTextArea();
+		txtMessaggio.setBounds(10, 176, 558, 291);
+		contentPane.add(txtMessaggio);
+		txtMessaggio.setWrapStyleWord(true);
+		txtMessaggio.setLineWrap(true);
+
 		JScrollPane scrollPane = new JScrollPane(txtChat, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setSize(558, 291);
 		scrollPane.setLocation(10, 176);
 		contentPane.add(scrollPane);
+
+		JScrollPane scrollPaneMsg = new JScrollPane(
+				txtMessaggio, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		scrollPaneMsg.setSize(431, 60);
+		scrollPaneMsg.setLocation(10, 478);
+		contentPane.add(scrollPaneMsg);
 	}
 }

@@ -45,10 +45,13 @@ public class ChatThread implements Runnable {
             } catch (Exception e) {
                 continue;
             }
-            System.out.println(str + "\n");
-            GUI.txtChat.append(str + "\n");
-            for (ChatThread client : Server.client) {
-                client.StampaMessaggio(str);
+
+            if (!str.equals(null)) {
+                System.out.println(str + "\n");
+                GUI.txtChat.append(str + "\n");
+                for (ChatThread client : Server.client) {
+                    client.StampaMessaggio(str);
+                }
             }
         }
         System.out.println("Client is down");

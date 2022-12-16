@@ -1,5 +1,6 @@
 package ChatLocale;
 
+import java.awt.AWTException;
 import java.io.*;
 import java.net.*;
 
@@ -46,7 +47,16 @@ public class ChatClient implements Runnable {
                 continue;
             }
 
-            GUI.txtChat.append(str + "\n");
+            if (!str.equals(null)) {
+                GUI.txtChat.append(str + "\n");
+                Notifica td = new Notifica();
+                try {
+                    td.visualizzaNotifica(str + "\n");
+                } catch (AWTException e) {
+                    e.printStackTrace();
+                }
+            }
+
         }
 
         System.out.println("Client is down");
