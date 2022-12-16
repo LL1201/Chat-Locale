@@ -17,12 +17,12 @@ import javax.swing.JTextArea;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.awt.event.ActionEvent;
 import javax.swing.JScrollPane;
 import java.awt.event.WindowFocusListener;
 import java.awt.event.WindowEvent;
-import java.awt.Component;
 import javax.swing.ScrollPaneConstants;
 
 public class GUI extends JFrame {
@@ -35,6 +35,7 @@ public class GUI extends JFrame {
 	private JTextField txtIpServer;
 	public static JTextArea txtChat;
 	public static JTextArea txtMessaggio;
+	public static ExecutorService poolClient = Executors.newFixedThreadPool(50);
 
 	/**
 	 * Launch the application.
@@ -99,6 +100,7 @@ public class GUI extends JFrame {
 		});
 		btnInvia.setBounds(451, 478, 117, 60);
 		contentPane.add(btnInvia);
+		
 
 		JButton btnConnetti = new JButton("Connettiti");
 		btnConnetti.addActionListener(new ActionListener() {
@@ -109,8 +111,8 @@ public class GUI extends JFrame {
 						try {
 							Socket socket = new Socket(txtIpServer.getText(), 1212);
 							chatClient = new ChatClient(socket, txtNomeChat.getText());
-							// Server.client.add(chatClient);
-							new Thread(chatClient).start();
+							poolClient.execute(chatClient);
+							// new Thread(chatClient).start();
 							System.out.println("Pool OK");
 							btnConnetti.setEnabled(false);
 							btnDisconnetti.setEnabled(true);
@@ -145,6 +147,9 @@ public class GUI extends JFrame {
 				btnAvviaServer.setEnabled(false);
 				btnConnetti.setEnabled(true);
 				txtChat.append("Processo server avviato. In attesa di connessione");
+				txtIpServer.setEnabled(false);
+				txtNomeChat.setEnabled(false);
+				btnConnetti.setEnabled(false);
 			}
 		});
 		btnAvviaServer.setBounds(10, 52, 558, 46);
@@ -153,6 +158,10 @@ public class GUI extends JFrame {
 		btnDisconnetti.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				ChatClient.Disconnetti();
+				btnConnetti.setEnabled(true);
+				txtIpServer.setEnabled(true);
+				txtNomeChat.setEnabled(true);
+				btnDisconnetti.setEnabled(false);
 			}
 		});
 		btnDisconnetti.setEnabled(false);
@@ -170,6 +179,7 @@ public class GUI extends JFrame {
 
 		txtChat = new JTextArea();
 		txtChat.setBounds(10, 176, 558, 291);
+		txtChat.setEditable(false);
 		contentPane.add(txtChat);
 
 		txtMessaggio = new JTextArea();

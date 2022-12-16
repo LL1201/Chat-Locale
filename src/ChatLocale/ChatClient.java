@@ -19,8 +19,9 @@ public class ChatClient implements Runnable {
 
     public void run() {
         // timeout per lo spegimento del server e la disconnessione dei client
+        clientClose = true;
         try {
-            s.setSoTimeout(4500);
+            s.setSoTimeout(1500);
         } catch (SocketException e1) {
             e1.printStackTrace();
         }
@@ -58,8 +59,17 @@ public class ChatClient implements Runnable {
             }
 
         }
+        out.println(nomeChat + ": si è disconnesso dal server \n");
 
-        System.out.println("Client is down");
+        try {
+            s.close();
+            out.close();
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        GUI.txtChat.append("Ti sei disconnesso dal server \n");
     }
 
     public void Invia(String messaggio) {
@@ -69,5 +79,6 @@ public class ChatClient implements Runnable {
 
     public static void Disconnetti() {
         ChatThread.clientClose = false;
+        clientClose = false;
     }
 }

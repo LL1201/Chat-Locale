@@ -21,7 +21,7 @@ public class ChatThread implements Runnable {
     public void run() {
         // timeout per lo spegimento del server e la disconnessione dei client
         try {
-            s.setSoTimeout(4500);
+            s.setSoTimeout(1500);
         } catch (SocketException e1) {
             e1.printStackTrace();
         }
@@ -55,6 +55,13 @@ public class ChatThread implements Runnable {
             }
         }
         System.out.println("Client is down");
+        try {
+            s.close();
+            out.close();
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void StampaMessaggio(String msg) {
