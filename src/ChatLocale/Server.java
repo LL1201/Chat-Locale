@@ -4,20 +4,21 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+
+import javax.net.ServerSocketFactory;
+import javax.net.ssl.SSLServerSocketFactory;
+
 import java.io.IOException;
 
 public class Server implements Runnable {
 
 	private static ServerSocket ws = null;
+	ServerSocketFactory factory = SSLServerSocketFactory.getDefault();
 	public static ExecutorService pool;
 	public static List<String> messages = new ArrayList<String>();
 	public static boolean serverClose = true;
 	public static List<ChatThread> client = new ArrayList<ChatThread>();
 	String ip;
-
-	public Server() {
-
-	}
 
 	public void run() {
 
@@ -31,7 +32,36 @@ public class Server implements Runnable {
 			System.out.println("Welcoming socket error!");
 		}
 
+		/*
+		 * try {
+		 * SSLServerSocket listener = (SSLServerSocket)
+		 * factory.createServerSocket(1212);
+		 * listener.setNeedClientAuth(true);
+		 * listener.setEnabledCipherSuites(new String[] { "TLS_AES_128_GCM_SHA256" });
+		 * listener.setEnabledProtocols(new String[] { "TLSv1.3" });
+		 * System.out.println("listening for messages...");
+		 * 
+		 * while (serverClose) {
+		 * Socket cmd = null;
+		 * ChatThread c;
+		 * try {
+		 * cmd = listener.accept();
+		 * c = new ChatThread(cmd);
+		 * client.add(c);
+		 * pool.execute(c);
+		 * System.out.println("Pool OK");
+		 * } catch (Exception e) {
+		 * continue;
+		 * }
+		 * }
+		 * 
+		 * } catch (Exception e) {
+		 * e.printStackTrace();
+		 * }
+		 */
+
 		// in ascolto per creare nuovi thread
+
 		while (serverClose) {
 			Socket cmd = null;
 			ChatThread c;
@@ -45,6 +75,7 @@ public class Server implements Runnable {
 				continue;
 			}
 		}
+
 		System.out.println("Server is down");
 	}
 }

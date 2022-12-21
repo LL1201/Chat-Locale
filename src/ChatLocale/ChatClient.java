@@ -50,6 +50,7 @@ public class ChatClient implements Runnable {
 
             if (!str.equals(null)) {
                 GUI.txtChat.append(str + "\n");
+                GUI.txtChat.setCaretPosition(GUI.txtChat.getDocument().getLength());
                 Notifica td = new Notifica();
                 try {
                     td.visualizzaNotifica(str + "\n");

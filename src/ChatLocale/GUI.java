@@ -24,6 +24,8 @@ import javax.swing.JScrollPane;
 import java.awt.event.WindowFocusListener;
 import java.awt.event.WindowEvent;
 import javax.swing.ScrollPaneConstants;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyAdapter;
 
 public class GUI extends JFrame {
 
@@ -94,13 +96,11 @@ public class GUI extends JFrame {
 		btnInvia.setEnabled(false);
 		btnInvia.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				chatClient.Invia(txtMessaggio.getText());
-				txtMessaggio.setText("");
+				InviaMessaggio(txtMessaggio.getText());
 			}
 		});
 		btnInvia.setBounds(451, 478, 117, 60);
 		contentPane.add(btnInvia);
-		
 
 		JButton btnConnetti = new JButton("Connettiti");
 		btnConnetti.addActionListener(new ActionListener() {
@@ -109,10 +109,22 @@ public class GUI extends JFrame {
 				if (validator.isValidInet4Address(txtIpServer.getText())) {
 					if (!txtNomeChat.getText().equals("")) {
 						try {
+							/*
+							 * SocketFactory factory = SSLSocketFactory.getDefault();
+							 * try {
+							 * SSLSocket socket = (SSLSocket) factory.createSocket(txtIpServer.getText(),
+							 * 1212);
+							 * socket.setEnabledCipherSuites(new String[] { "TLS_AES_128_GCM_SHA256" });
+							 * socket.setEnabledProtocols(new String[] { "TLSv1.3" });
+							 * chatClient = new ChatClient(socket, txtNomeChat.getText());
+							 * poolClient.execute(chatClient);
+							 * } catch (Exception ex) {
+							 * ex.printStackTrace();
+							 * }
+							 */
 							Socket socket = new Socket(txtIpServer.getText(), 1212);
 							chatClient = new ChatClient(socket, txtNomeChat.getText());
-							poolClient.execute(chatClient);
-							// new Thread(chatClient).start();
+							new Thread(chatClient).start();
 							System.out.println("Pool OK");
 							btnConnetti.setEnabled(false);
 							btnDisconnetti.setEnabled(true);
@@ -164,6 +176,7 @@ public class GUI extends JFrame {
 				btnDisconnetti.setEnabled(false);
 			}
 		});
+
 		btnDisconnetti.setEnabled(false);
 		btnDisconnetti.setBounds(459, 111, 109, 54);
 		contentPane.add(btnDisconnetti);
@@ -183,6 +196,21 @@ public class GUI extends JFrame {
 		contentPane.add(txtChat);
 
 		txtMessaggio = new JTextArea();
+		txtMessaggio.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					InviaMessaggio(txtMessaggio.getText());
+				}
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					txtMessaggio.setText("");
+				}
+			}
+		});
 		txtMessaggio.setBounds(10, 176, 558, 291);
 		contentPane.add(txtMessaggio);
 		txtMessaggio.setWrapStyleWord(true);
@@ -201,4 +229,9 @@ public class GUI extends JFrame {
 		scrollPaneMsg.setLocation(10, 478);
 		contentPane.add(scrollPaneMsg);
 	}
+
+	private void InviaMessaggio(String msg) {
+		chatClient.Invia(msg);
+	}
+
 }
