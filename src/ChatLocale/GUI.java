@@ -26,18 +26,21 @@ import java.awt.event.WindowEvent;
 import javax.swing.ScrollPaneConstants;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyAdapter;
+import java.awt.event.WindowAdapter;
 
 public class GUI extends JFrame {
 
 	private JPanel contentPane;
 	private JTextField txtNomeChat;
 	JButton btnDisconnetti = new JButton("Disconnettiti");
+	JButton btnInvia = new JButton("INVIA");
+	JButton btnAvviaServer = new JButton("Avvia il processo server");
 
 	public ChatClient chatClient;
 	private JTextField txtIpServer;
 	public static JTextArea txtChat;
 	public static JTextArea txtMessaggio;
-	public static ExecutorService poolClient = Executors.newFixedThreadPool(50);
+	public static ExecutorService poolClient = Executors.newFixedThreadPool(10);
 
 	/**
 	 * Launch the application.
@@ -59,6 +62,16 @@ public class GUI extends JFrame {
 	 * Create the frame.
 	 */
 	public GUI() {
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				if (!btnAvviaServer.isEnabled())
+					Server.Shutdown();
+				else if (btnDisconnetti.isEnabled())
+					JOptionPane.showMessageDialog(new JFrame(), "Disconnettiti dal server!", "Inane warning",
+							JOptionPane.WARNING_MESSAGE);
+			}
+		});
 		addWindowFocusListener(new WindowFocusListener() {
 			public void windowGainedFocus(WindowEvent e) {
 				Notifica.windowFocus = false;
@@ -92,11 +105,11 @@ public class GUI extends JFrame {
 		lblNewLabel_1.setBounds(190, 11, 208, 20);
 		contentPane.add(lblNewLabel_1);
 
-		JButton btnInvia = new JButton("INVIA");
 		btnInvia.setEnabled(false);
 		btnInvia.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				InviaMessaggio(txtMessaggio.getText());
+				txtMessaggio.setText("");
 			}
 		});
 		btnInvia.setBounds(451, 478, 117, 60);
@@ -129,7 +142,6 @@ public class GUI extends JFrame {
 							btnConnetti.setEnabled(false);
 							btnDisconnetti.setEnabled(true);
 							txtMessaggio.setEnabled(true);
-							btnInvia.setEnabled(true);
 							txtIpServer.setEnabled(false);
 							txtNomeChat.setEnabled(false);
 						} catch (Exception ex) {
@@ -149,9 +161,14 @@ public class GUI extends JFrame {
 		btnConnetti.setBounds(325, 111, 124, 54);
 		contentPane.add(btnConnetti);
 
-		JButton btnAvviaServer = new JButton("Avvia il processo server");
 		btnAvviaServer.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				try {
+					UserManagement um = new UserManagement();
+					um.setVisible(true);
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
 				Server.serverClose = true;
 				Server.pool = Executors.newFixedThreadPool(50);
 				new Thread(new Server()).start();
@@ -191,16 +208,31 @@ public class GUI extends JFrame {
 		contentPane.add(txtIpServer);
 
 		txtChat = new JTextArea();
+		txtChat.setFont(new Font("Monospaced", Font.PLAIN, 14));
 		txtChat.setBounds(10, 176, 558, 291);
 		txtChat.setEditable(false);
 		contentPane.add(txtChat);
 
 		txtMessaggio = new JTextArea();
+		txtMessaggio.setFont(new Font("Monospaced", Font.PLAIN, 14));
 		txtMessaggio.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					InviaMessaggio(txtMessaggio.getText());
+					if (txtMessaggio.getText().equals("")) {
+						JOptionPane.showMessageDialog(new JFrame(), "Impossibile inviare un messaggio vuoto",
+								"Inane warning",
+								JOptionPane.WARNING_MESSAGE);
+					} else {
+						InviaMessaggio(txtMessaggio.getText());
+					}
+
+				}
+
+				if (txtMessaggio.getText().equals("")) {
+					btnInvia.setEnabled(false);
+				} else {
+					btnInvia.setEnabled(true);
 				}
 			}
 
@@ -208,6 +240,12 @@ public class GUI extends JFrame {
 			public void keyReleased(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
 					txtMessaggio.setText("");
+				}
+
+				if (txtMessaggio.getText().equals("")) {
+					btnInvia.setEnabled(false);
+				} else {
+					btnInvia.setEnabled(true);
 				}
 			}
 		});
@@ -232,6 +270,7 @@ public class GUI extends JFrame {
 
 	private void InviaMessaggio(String msg) {
 		chatClient.Invia(msg);
+		btnInvia.setEnabled(false);
 	}
 
 }

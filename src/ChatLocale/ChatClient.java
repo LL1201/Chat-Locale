@@ -4,6 +4,9 @@ import java.awt.AWTException;
 import java.io.*;
 import java.net.*;
 
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
 public class ChatClient implements Runnable {
     private Socket s = null;
     private PrintWriter out = null;
@@ -41,6 +44,7 @@ public class ChatClient implements Runnable {
 
         // finché clientclose rimane true (comando di server acceso) il ciclo continua
 
+        out.println("ctrlmsg" + nomeChat);
         while (clientClose) {
             try {
                 str = in.readLine();
@@ -74,8 +78,16 @@ public class ChatClient implements Runnable {
     }
 
     public void Invia(String messaggio) {
-        out.println(nomeChat + ": " + messaggio);
-        // GUI.txtChat.append(nomeChat + ": " + messaggio + "\n");
+        if (s.isClosed())
+            JOptionPane.showMessageDialog(new JFrame(), "Server non disponibile", "Inane warning",
+                    JOptionPane.WARNING_MESSAGE);
+        else
+            try {
+                out.println(nomeChat + ": " + messaggio);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(new JFrame(), "Server non disponibile", "Inane warning",
+                        JOptionPane.WARNING_MESSAGE);
+            }
     }
 
     public static void Disconnetti() {

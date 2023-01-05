@@ -17,7 +17,7 @@ public class Server implements Runnable {
 	public static ExecutorService pool;
 	public static List<String> messages = new ArrayList<String>();
 	public static boolean serverClose = true;
-	public static List<ChatThread> client = new ArrayList<ChatThread>();
+	public static List<User> client = new ArrayList<User>();
 	String ip;
 
 	public void run() {
@@ -68,14 +68,24 @@ public class Server implements Runnable {
 			try {
 				cmd = ws.accept();
 				c = new ChatThread(cmd);
-				client.add(c);
+				client.add(new User("", c));
 				pool.execute(c);
-				System.out.println("Pool OK");
 			} catch (Exception e) {
 				continue;
 			}
 		}
 
 		System.out.println("Server is down");
+	}
+
+	public static void Shutdown() {
+		ChatClient.Disconnetti();
+		pool.shutdownNow();
+		serverClose = false;
+		try {
+			ws.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

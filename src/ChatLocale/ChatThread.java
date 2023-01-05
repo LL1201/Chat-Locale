@@ -9,13 +9,16 @@ public class ChatThread implements Runnable {
     private PrintWriter out = null;
     private String str = null;
     public static boolean clientClose = true;
+    private int lstId;
+    private String name;
 
     public ChatThread(Socket cmd) {
         this.s = cmd;
     }
 
-    public ChatThread(Socket cmd, String ip) {
+    public ChatThread(Socket cmd, int lstId) {
         this.s = cmd;
+        this.lstId = lstId;
     }
 
     public void run() {
@@ -46,11 +49,15 @@ public class ChatThread implements Runnable {
                 continue;
             }
 
+            if (str.substring(0, 6).equals("ctrlmsg")) {
+                name = str.substring(7);
+                Server.client.get(lstId).name = name;
+            }
             if (!str.equals(null)) {
                 System.out.println(str + "\n");
                 GUI.txtChat.append(str + "\n");
-                for (ChatThread client : Server.client) {
-                    client.StampaMessaggio(str);
+                for (User client : Server.client) {
+                    client.thread.StampaMessaggio(str);
                 }
             }
         }
